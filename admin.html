@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0a14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Trimly — Painel do Barbeiro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a14; --bg2: #111120; --bg3: #1a1a2e; --bg4: #222240;
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+      --accent: #5B4FD8; --accent2: #7B6FE8; --accent-light: rgba(91,79,216,0.15);
+      --text: #f0f0ff; --text2: #a0a0c0; --text3: #606080;
+      --green: #22c55e; --green-bg: rgba(34,197,94,0.12);
+      --amber: #f59e0b; --amber-bg: rgba(245,158,11,0.12);
+      --red: #ef4444; --red-bg: rgba(239,68,68,0.1);
+      --blue: #3b82f6; --blue-bg: rgba(59,130,246,0.12);
+      --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+      --radius: 16px; --radius-sm: 10px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+    }
+    html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+
+    /* LOGIN */
+    #login-screen {
+      position: fixed; inset: 0; z-index: 200;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .login-box { width: 100%; max-width: 360px; text-align: center; }
+    .login-logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+    .login-logo span { font-family: var(--font-display); font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+    .login-sub { font-size: 13px; color: var(--text3); margin-bottom: 36px; }
+    .login-label { font-size: 12px; color: var(--text2); text-align: left; margin-bottom: 6px; display: block; }
+    .login-select {
+      width: 100%; background: var(--bg3); border: 1px solid var(--border2);
+      border-radius: var(--radius-sm); padding: 13px 14px;
+      font-size: 15px; font-family: var(--font-body); color: var(--text);
+      outline: none; margin-bottom: 14px; appearance: none;
+    }
+    .login-input {
+      width: 100%; background: var(--bg3); border: 1px solid var(--border2);
+      border-radius: var(--radius-sm); padding: 13px 14px;
+      font-size: 15px; font-family: var(--font-body); color: var(--text);
+      outline: none; margin-bottom: 20px;
+    }
+    .login-input::placeholder { color: var(--text3); }
+    .login-input:focus { border-color: var(--accent); }
+    .login-btn {
+      width: 100%; background: var(--accent); border: none; border-radius: 50px;
+      padding: 15px; font-size: 15px; font-family: var(--font-display); font-weight: 600;
+      color: white; cursor: pointer; transition: opacity 0.2s;
+    }
+    .login-btn:active { opacity: 0.85; }
+    .login-err { color: var(--red); font-size: 13px; margin-top: 10px; display: none; }
+
+    /* APP SHELL */
+    #admin-app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+    .hidden { display: none !important; }
+
+    /* TOP BAR */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      padding-top: calc(10px + var(--safe-top));
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      flex-shrink: 0; z-index: 10;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 8px; }
+    .topbar-logo { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text); }
+    .topbar-badge { font-size: 10px; background: var(--accent-light); color: var(--accent2); padding: 3px 8px; border-radius: 20px; font-weight: 500; }
+    .barber-pill { display: flex; align-items: center; gap: 6px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 50px; padding: 5px 12px 5px 8px; }
+    .barber-pill-ava { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    .barber-pill-name { font-size: 12px; color: var(--text); font-weight: 500; }
+    .logout-btn { background: none; border: none; color: var(--text3); font-size: 12px; cursor: pointer; padding: 4px 8px; }
+
+    /* NAV TABS */
+    .nav-tabs {
+      display: flex; background: var(--bg2); border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .nav-tab {
+      flex: 1; padding: 12px 6px; text-align: center; font-size: 11px;
+      font-family: var(--font-display); font-weight: 600; color: var(--text3);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .nav-tab .tab-icon { font-size: 18px; }
+    .nav-tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+
+    /* CONTENT */
+    .content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+    .content::-webkit-scrollbar { width: 3px; }
+    .content::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+    .tab-pane { display: none; padding: 16px; padding-bottom: calc(16px + var(--safe-bottom)); }
+    .tab-pane.active { display: block; }
+
+    /* CARDS */
+    .card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+    .card-title { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* STAT CARDS */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .stat-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+    .stat-icon { font-size: 22px; margin-bottom: 8px; }
+    .stat-val { font-family: var(--font-display); font-size: 24px; font-weight: 800; color: var(--text); line-height: 1; margin-bottom: 4px; }
+    .stat-label { font-size: 11px; color: var(--text3); }
+    .stat-delta { font-size: 11px; margin-top: 4px; }
+    .delta-up { color: var(--green); }
+    .delta-down { color: var(--red); }
+
+    /* APPOINTMENT ITEMS */
+    .appt-item {
+      background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start;
+      animation: fadein 0.25s ease;
+    }
+    @keyframes fadein { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    .appt-time-col { text-align: center; min-width: 46px; }
+    .appt-time { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text); line-height: 1; }
+    .appt-dur { font-size: 10px; color: var(--text3); margin-top: 2px; }
+    .appt-divider { width: 1px; background: var(--border); align-self: stretch; flex-shrink: 0; }
+    .appt-info { flex: 1; min-width: 0; }
+    .appt-client { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .appt-service { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+    .appt-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+    .appt-tag { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
+    .tag-green { background: var(--green-bg); color: var(--green); }
+    .tag-amber { background: var(--amber-bg); color: var(--amber); }
+    .tag-blue  { background: var(--blue-bg);  color: var(--blue);  }
+    .tag-red   { background: var(--red-bg);   color: var(--red);   }
+    .appt-actions { display: flex; flex-direction: column; gap: 6px; }
+    .action-btn {
+      background: none; border: 1px solid var(--border2); border-radius: var(--radius-sm);
+      padding: 5px 10px; font-size: 11px; color: var(--text2); cursor: pointer;
+      transition: all 0.15s; white-space: nowrap; -webkit-tap-highlight-color: transparent;
+    }
+    .action-btn:active { background: var(--bg4); }
+    .action-btn.danger { border-color: var(--red-bg); color: var(--red); }
+    .action-btn.success { border-color: var(--green-bg); color: var(--green); }
+
+    /* EMPTY STATE */
+    .empty { text-align: center; padding: 40px 20px; color: var(--text3); }
+    .empty-icon { font-size: 40px; margin-bottom: 10px; }
+    .empty-text { font-size: 14px; line-height: 1.5; }
+
+    /* CALENDAR NAV */
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .cal-nav-btn { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 14px; font-size: 13px; color: var(--text2); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .cal-nav-btn:active { background: var(--bg4); }
+    .cal-date-label { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--text); }
+
+    /* WEEK STRIP */
+    .week-strip { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; }
+    .week-strip::-webkit-scrollbar { display: none; }
+    .week-day {
+      flex-shrink: 0; width: 48px; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border); background: var(--bg3);
+      text-align: center; padding: 8px 4px; cursor: pointer;
+      transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+    }
+    .week-day.active { background: var(--accent); border-color: var(--accent); }
+    .week-day.has-appt .wd-num::after { content:'•'; position:absolute; bottom:-2px; left:50%; transform:translateX(-50%); font-size:8px; color: var(--accent2); }
+    .week-day.active.has-appt .wd-num::after { color:rgba(255,255,255,0.7); }
+    .wd-name { font-size: 9px; text-transform: uppercase; color: var(--text3); margin-bottom: 3px; }
+    .week-day.active .wd-name { color: rgba(255,255,255,0.7); }
+    .wd-num { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--text); position: relative; }
+    .week-day.active .wd-num { color: white; }
+
+    /* SECTION LABEL */
+    .section-label { font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+
+    /* TIMELINE */
+    .timeline { position: relative; }
+    .timeline-item { display: flex; gap: 10px; margin-bottom: 4px; }
+    .tl-time { width: 40px; font-size: 11px; color: var(--text3); padding-top: 8px; flex-shrink: 0; text-align: right; }
+    .tl-line { display: flex; flex-direction: column; align-items: center; }
+    .tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border2); margin-top: 10px; flex-shrink: 0; }
+    .tl-dot.booked { background: var(--accent); }
+    .tl-dot.done { background: var(--green); }
+    .tl-dot.current { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .tl-connector { flex: 1; width: 1px; background: var(--border); }
+    .tl-card { flex: 1; margin-bottom: 6px; }
+    .tl-slot-empty { background: var(--bg2); border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 8px 12px; }
+    .tl-slot-empty span { font-size: 12px; color: var(--text3); }
+    .tl-appt { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 10px 12px; border-left: 3px solid var(--accent); }
+    .tl-appt.done-slot { border-left-color: var(--green); }
+    .tl-appt .tl-client { font-size: 13px; font-weight: 500; color: var(--text); }
+    .tl-appt .tl-svc { font-size: 11px; color: var(--text2); margin-top: 2px; }
+    .tl-appt .tl-price { font-size: 12px; color: var(--accent2); font-weight: 600; margin-top: 4px; }
+
+    /* FINANCEIRO */
+    .finance-period { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; }
+    .finance-period::-webkit-scrollbar { display: none; }
+    .period-btn { flex-shrink: 0; background: var(--bg3); border: 1px solid var(--border); border-radius: 50px; padding: 7px 14px; font-size: 12px; color: var(--text2); cursor: pointer; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
+    .period-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    /* BAR CHART */
+    .mini-chart { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-bottom: 8px; }
+    .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+    .chart-bar { width: 100%; border-radius: 4px 4px 0 0; background: var(--accent); opacity: 0.7; transition: height 0.5s ease, opacity 0.2s; min-height: 4px; }
+    .chart-bar.today { opacity: 1; background: var(--accent2); }
+    .chart-bar-label { font-size: 9px; color: var(--text3); }
+
+    /* CLIENTS */
+    .client-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .client-item:last-child { border-bottom: none; }
+    .client-ava { width: 40px; height: 40px; border-radius: 50%; background: var(--bg4); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--accent2); flex-shrink: 0; }
+    .client-name { font-size: 14px; font-weight: 500; color: var(--text); }
+    .client-info { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    .client-right { margin-left: auto; text-align: right; }
+    .client-total { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--accent2); }
+    .client-visits { font-size: 11px; color: var(--text3); }
+
+    /* TOGGLE */
+    .toggle-wrap { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .toggle-label { font-size: 14px; color: var(--text); }
+    .toggle-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    .toggle { width: 44px; height: 26px; background: var(--bg4); border-radius: 13px; border: none; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+    .toggle.on { background: var(--accent); }
+    .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: white; transition: transform 0.2s; }
+    .toggle.on::after { transform: translateX(18px); }
+
+    /* NOTIFICATION DOT */
+    .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); display: inline-block; margin-left: 4px; vertical-align: middle; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.7);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 0;
+    }
+    .modal-box {
+      background: var(--bg2); border-radius: var(--radius) var(--radius) 0 0;
+      border: 1px solid var(--border); width: 100%; max-width: 480px;
+      padding: 20px 20px calc(20px + var(--safe-bottom));
+      animation: slide-up 0.25s ease;
+      max-height: 80vh; overflow-y: auto;
+    }
+    @keyframes slide-up { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    .modal-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+    .modal-row { display: flex; gap: 8px; margin-top: 12px; }
+    .modal-btn { flex: 1; border: none; border-radius: 50px; padding: 13px; font-size: 14px; font-family: var(--font-display); font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .modal-btn.primary { background: var(--accent); color: white; }
+    .modal-btn.secondary { background: var(--bg4); color: var(--text2); }
+    .modal-btn.danger { background: var(--red-bg); color: var(--red); }
+    .modal-input { width: 100%; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 14px; font-family: var(--font-body); color: var(--text); outline: none; margin-top: 8px; }
+
+    /* BADGE */
+    .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
+    .badge.pending { background: var(--amber-bg); color: var(--amber); }
+    .badge.confirmed { background: var(--green-bg); color: var(--green); }
+    .badge.done { background: var(--blue-bg); color: var(--blue); }
+    .badge.cancelled { background: var(--red-bg); color: var(--red); }
+
+    /* FILTER BAR */
+    .filter-bar { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-chip { flex-shrink: 0; background: var(--bg3); border: 1px solid var(--border); border-radius: 50px; padding: 6px 14px; font-size: 12px; color: var(--text2); cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+    .filter-chip.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent2); }
+
+    /* FAB */
+    .fab { position: fixed; bottom: calc(80px + var(--safe-bottom)); right: 16px; width: 52px; height: 52px; border-radius: 50%; background: var(--accent); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 16px rgba(91,79,216,0.4); z-index: 50; transition: transform 0.15s; -webkit-tap-highlight-color: transparent; font-size: 22px; }
+    .fab:active { transform: scale(0.92); }
+  </style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="36" height="36" viewBox="0 0 56 56" fill="none">
+        <rect width="56" height="56" rx="14" fill="#5B4FD8"/>
+        <path d="M16 14 L40 42" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M40 14 L16 42" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="16" cy="14" r="5" fill="white"/><circle cx="40" cy="14" r="5" fill="white"/>
+        <circle cx="16" cy="42" r="3.5" fill="rgba(255,255,255,0.5)"/>
+        <circle cx="40" cy="42" r="3.5" fill="rgba(255,255,255,0.5)"/>
+      </svg>
+      <span>Trimly</span>
+    </div>
+    <p class="login-sub">Painel do Profissional</p>
+    <label class="login-label">Selecione seu perfil</label>
+    <select id="login-select" class="login-select">
+      <option value="">— Selecione —</option>
+      <option value="isaias">💈 Isaías Sousa</option>
+      <option value="jonathan">✂️ Jonathan Eduardo</option>
+      <option value="admin">👑 Administrador</option>
+    </select>
+    <label class="login-label">Senha</label>
+    <input id="login-pass" class="login-input" type="password" placeholder="••••••" />
+    <button class="login-btn" onclick="doLogin()">Entrar no Painel →</button>
+    <p class="login-err" id="login-err">Senha incorreta. Tente novamente.</p>
+    <p style="font-size:11px;color:var(--text3);margin-top:16px">Senha padrão: <strong style="color:var(--text2)">1234</strong></p>
+  </div>
+</div>
+
+<!-- ===== ADMIN APP ===== -->
+<div id="admin-app" class="hidden">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-logo">Trimly</span>
+      <span class="topbar-badge" id="topbar-badge">Painel</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="barber-pill">
+        <div class="barber-pill-ava" id="pill-ava">?</div>
+        <span class="barber-pill-name" id="pill-name">—</span>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-tab="hoje" onclick="switchTab('hoje',this)">
+      <span class="tab-icon">📅</span>Hoje
+    </div>
+    <div class="nav-tab" data-tab="agenda" onclick="switchTab('agenda',this)">
+      <span class="tab-icon">🗓</span>Agenda
+    </div>
+    <div class="nav-tab" data-tab="financeiro" onclick="switchTab('financeiro',this)">
+      <span class="tab-icon">💰</span>Financeiro
+    </div>
+    <div class="nav-tab" data-tab="clientes" onclick="switchTab('clientes',this)">
+      <span class="tab-icon">👥</span>Clientes
+    </div>
+    <div class="nav-tab" data-tab="config" onclick="switchTab('config',this)">
+      <span class="tab-icon">⚙️</span>Config
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ===== HOJE ===== -->
+    <div class="tab-pane active" id="tab-hoje">
+      <div class="stats-grid" id="hoje-stats"></div>
+      <div class="section-label">Agenda de Hoje</div>
+      <div id="hoje-appts"></div>
+    </div>
+
+    <!-- ===== AGENDA ===== -->
+    <div class="tab-pane" id="tab-agenda">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeWeek(-1)">← Anterior</button>
+        <span class="cal-date-label" id="agenda-label">—</span>
+        <button class="cal-nav-btn" onclick="changeWeek(1)">Próxima →</button>
+      </div>
+      <div class="week-strip" id="week-strip"></div>
+      <div class="section-label" id="agenda-day-label">—</div>
+      <div id="agenda-timeline"></div>
+    </div>
+
+    <!-- ===== FINANCEIRO ===== -->
+    <div class="tab-pane" id="tab-financeiro">
+      <div class="finance-period">
+        <button class="period-btn active" onclick="setPeriod('hoje',this)">Hoje</button>
+        <button class="period-btn" onclick="setPeriod('semana',this)">Esta semana</button>
+        <button class="period-btn" onclick="setPeriod('mes',this)">Este mês</button>
+        <button class="period-btn" onclick="setPeriod('total',this)">Total</button>
+      </div>
+      <div class="stats-grid" id="fin-stats"></div>
+      <div class="card">
+        <div class="card-title">Faturamento — últimos 7 dias</div>
+        <div class="mini-chart" id="mini-chart"></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3)" id="chart-labels"></div>
+      </div>
+      <div class="section-label">Serviços mais realizados</div>
+      <div class="card" id="top-services"></div>
+    </div>
+
+    <!-- ===== CLIENTES ===== -->
+    <div class="tab-pane" id="tab-clientes">
+      <input id="client-search" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:11px 14px;font-size:14px;font-family:var(--font-body);color:var(--text);outline:none;margin-bottom:14px" placeholder="🔍  Buscar cliente…" oninput="renderClients(this.value)" />
+      <div id="clients-list"></div>
+    </div>
+
+    <!-- ===== CONFIG ===== -->
+    <div class="tab-pane" id="tab-config">
+      <div class="card">
+        <div class="card-title">Notificações</div>
+        <div class="toggle-wrap">
+          <div><div class="toggle-label">Novo agendamento</div><div class="toggle-sub">Avisar quando um cliente marcar</div></div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-wrap">
+          <div><div class="toggle-label">Lembrete 1h antes</div><div class="toggle-sub">Notificar antes de cada atendimento</div></div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-wrap" style="border:none">
+          <div><div class="toggle-label">Cancelamento de cliente</div><div class="toggle-sub">Avisar se desmarcarem</div></div>
+          <button class="toggle" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Meu horário de trabalho</div>
+        <div id="workday-config"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Link de agendamento</div>
+        <div style="background:var(--bg4);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--accent2);word-break:break-all;margin-bottom:10px" id="booking-link">—</div>
+        <button style="width:100%;background:var(--bg4);border:1px solid var(--border2);border-radius:50px;padding:11px;font-size:13px;font-family:var(--font-display);font-weight:600;color:var(--text2);cursor:pointer" onclick="copyLink()">📋 Copiar link</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay hidden" id="modal" onclick="closeModal(event)">
+  <div class="modal-box" id="modal-box"></div>
+</div>
+
+<!-- FAB novo agendamento -->
+<button class="fab hidden" id="fab" onclick="openNewAppt()" title="Novo agendamento">➕</button>
+
+<script src="js/data.js"></script>
+<script>
+// ============================================================
+//  DADOS SIMULADOS
+// ============================================================
+const SENHA = "1234";
+let currentBarber = null;
+let agendaWeekOffset = 0;
+let agendaSelectedDate = todayStr();
+
+function todayStr() { return new Date().toISOString().split("T")[0]; }
+
+// Agendamentos simulados — em produção viria do banco de dados
+const APPOINTMENTS = [
+  { id:1,  date:"2026-05-22", time:"09:00", client:"Carlos Mendes",    service:"corte",       barber:"isaias",   status:"done",      price:45 },
+  { id:2,  date:"2026-05-22", time:"09:30", client:"Rafael Costa",     service:"corte_barba", barber:"isaias",   status:"done",      price:65 },
+  { id:3,  date:"2026-05-22", time:"10:00", client:"Pedro Alves",      service:"corte",       barber:"isaias",   status:"confirmed", price:45 },
+  { id:4,  date:"2026-05-22", time:"11:00", client:"Diego Souza",      service:"barba",       barber:"isaias",   status:"confirmed", price:30 },
+  { id:5,  date:"2026-05-22", time:"14:00", client:"Matheus Lima",     service:"corte_barba", barber:"isaias",   status:"pending",   price:65 },
+  { id:6,  date:"2026-05-22", time:"16:00", client:"André Oliveira",   service:"pigmentacao", barber:"isaias",   status:"pending",   price:80 },
+  { id:7,  date:"2026-05-22", time:"09:00", client:"Lucas Ferreira",   service:"corte",       barber:"jonathan", status:"done",      price:45 },
+  { id:8,  date:"2026-05-22", time:"10:30", client:"Gustavo Nunes",    service:"corte_barba", barber:"jonathan", status:"confirmed", price:65 },
+  { id:9,  date:"2026-05-22", time:"13:00", client:"Felipe Santos",    service:"sobrancelha", barber:"jonathan", status:"pending",   price:15 },
+  { id:10, date:"2026-05-23", time:"09:00", client:"Rodrigo Pereira",  service:"corte",       barber:"isaias",   status:"confirmed", price:45 },
+  { id:11, date:"2026-05-23", time:"09:30", client:"Thiago Castro",    service:"corte_barba", barber:"isaias",   status:"confirmed", price:65 },
+  { id:12, date:"2026-05-23", time:"11:00", client:"Bruno Martins",    service:"barba",       barber:"isaias",   status:"confirmed", price:30 },
+  { id:13, date:"2026-05-23", time:"14:00", client:"Eduardo Ramos",    service:"corte",       barber:"jonathan", status:"confirmed", price:45 },
+  { id:14, date:"2026-05-24", time:"10:00", client:"Vinicius Moraes",  service:"pigmentacao", barber:"isaias",   status:"confirmed", price:80 },
+  { id:15, date:"2026-05-25", time:"09:00", client:"Henrique Gomes",   service:"corte_barba", barber:"isaias",   status:"confirmed", price:65 },
+  { id:16, date:"2026-05-26", time:"11:00", client:"Igor Rocha",       service:"corte",       barber:"isaias",   status:"confirmed", price:45 },
+  { id:17, date:"2026-05-26", time:"15:00", client:"Caio Barbosa",     service:"barba",       barber:"jonathan", status:"confirmed", price:30 },
+];
+
+// ============================================================
+//  LOGIN
+// ============================================================
+function doLogin() {
+  const who  = document.getElementById("login-select").value;
+  const pass = document.getElementById("login-pass").value;
+  if (!who) return;
+  if (pass !== SENHA) {
+    document.getElementById("login-err").style.display = "block";
+    return;
+  }
+  currentBarber = who;
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("admin-app").classList.remove("hidden");
+  document.getElementById("fab").classList.remove("hidden");
+
+  const bInfo = CONFIG.barbers.find(b => b.id === who) || { name: "Admin", emoji: "👑" };
+  document.getElementById("pill-name").textContent = bInfo.name.split(" ")[0];
+  document.getElementById("pill-ava").textContent  = bInfo.emoji;
+  document.getElementById("topbar-badge").textContent = who === "admin" ? "Administrador" : "Profissional";
+
+  renderHoje();
+  renderAgenda();
+  renderFinanceiro("hoje");
+  renderClients("");
+  renderConfig();
+  document.getElementById("login-err").style.display = "none";
+}
+document.getElementById("login-pass").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+
+function doLogout() {
+  currentBarber = null;
+  document.getElementById("login-screen").style.display = "flex";
+  document.getElementById("admin-app").classList.add("hidden");
+  document.getElementById("fab").classList.add("hidden");
+  document.getElementById("login-pass").value = "";
+}
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function getAppts(barber, date) {
+  return APPOINTMENTS.filter(a =>
+    (barber === "admin" || a.barber === barber) &&
+    (!date || a.date === date)
+  ).sort((a,b) => a.time.localeCompare(b.time));
+}
+
+function getSvc(id) { return CONFIG.services.find(s => s.id === id) || { name: id, price: 0 }; }
+
+function fmtMoney(v) { return `R$ ${v.toFixed(2).replace(".",",")}` ; }
+
+function statusBadge(s) {
+  const map = { pending:"⏳ Pendente", confirmed:"✅ Confirmado", done:"🏁 Concluído", cancelled:"❌ Cancelado" };
+  return `<span class="badge ${s}">${map[s]||s}</span>`;
+}
+
+function switchTab(id, el) {
+  document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("tab-"+id).classList.add("active");
+  el.classList.add("active");
+}
+
+// ============================================================
+//  HOJE
+// ============================================================
+function renderHoje() {
+  const today = todayStr();
+  const appts = getAppts(currentBarber, today);
+  const done  = appts.filter(a => a.status === "done");
+  const pend  = appts.filter(a => a.status !== "done" && a.status !== "cancelled");
+  const recv  = done.reduce((s,a) => s + a.price, 0);
+  const proj  = appts.filter(a=>a.status!=="cancelled").reduce((s,a)=>s+a.price,0);
+
+  document.getElementById("hoje-stats").innerHTML = `
+    <div class="stat-card"><div class="stat-icon">✂️</div><div class="stat-val">${appts.length}</div><div class="stat-label">Agendamentos hoje</div></div>
+    <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-val">${pend.length}</div><div class="stat-label">Ainda a atender</div></div>
+    <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-val">${fmtMoney(recv)}</div><div class="stat-label">Recebido hoje</div></div>
+    <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-val">${fmtMoney(proj)}</div><div class="stat-label">Projeção do dia</div></div>
+  `;
+
+  if (!appts.length) {
+    document.getElementById("hoje-appts").innerHTML = `<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">Nenhum agendamento para hoje!</div></div>`;
+    return;
+  }
+  document.getElementById("hoje-appts").innerHTML = appts.map(a => apptCard(a)).join("");
+}
+
+function apptCard(a) {
+  const svc = getSvc(a.service);
+  return `<div class="appt-item" id="appt-${a.id}">
+    <div class="appt-time-col">
+      <div class="appt-time">${a.time}</div>
+      <div class="appt-dur">${svc.duration}min</div>
+    </div>
+    <div class="appt-divider"></div>
+    <div class="appt-info">
+      <div class="appt-client">${a.client}</div>
+      <div class="appt-service">${svc.icon||"💈"} ${svc.name} · ${fmtMoney(a.price)}</div>
+      <div class="appt-meta">
+        ${statusBadge(a.status)}
+        ${currentBarber==="admin" ? `<span class="appt-tag tag-blue">${CONFIG.barbers.find(b=>b.id===a.barber)?.name.split(" ")[0]||a.barber}</span>` : ""}
+      </div>
+    </div>
+    <div class="appt-actions">
+      ${a.status==="confirmed"||a.status==="pending" ? `<button class="action-btn success" onclick="markDone(${a.id})">✓ Concluir</button>` : ""}
+      ${a.status!=="done"&&a.status!=="cancelled" ? `<button class="action-btn danger" onclick="cancelAppt(${a.id})">✕ Cancelar</button>` : ""}
+      <button class="action-btn" onclick="openApptDetail(${a.id})">Ver mais</button>
+    </div>
+  </div>`;
+}
+
+function markDone(id) {
+  const a = APPOINTMENTS.find(x => x.id === id);
+  if (a) { a.status = "done"; renderHoje(); renderAgendaDay(agendaSelectedDate); }
+}
+
+function cancelAppt(id) {
+  openModal(`
+    <div class="modal-title">Cancelar agendamento?</div>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:4px">Esta ação não pode ser desfeita.</p>
+    <div class="modal-row">
+      <button class="modal-btn secondary" onclick="closeModal()">Voltar</button>
+      <button class="modal-btn danger" onclick="confirmCancel(${id})">Sim, cancelar</button>
+    </div>
+  `);
+}
+function confirmCancel(id) {
+  const a = APPOINTMENTS.find(x => x.id === id);
+  if (a) { a.status = "cancelled"; }
+  closeModal();
+  renderHoje();
+  renderAgendaDay(agendaSelectedDate);
+}
+
+function openApptDetail(id) {
+  const a = APPOINTMENTS.find(x => x.id === id);
+  if (!a) return;
+  const svc = getSvc(a.service);
+  const d = new Date(a.date + "T12:00:00");
+  openModal(`
+    <div class="modal-title">Detalhes do Agendamento</div>
+    <div style="background:var(--bg3);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:14px">
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span style="color:var(--text2);font-size:13px">Cliente</span><span style="color:var(--text);font-size:13px;font-weight:500">${a.client}</span></div>
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span style="color:var(--text2);font-size:13px">Serviço</span><span style="color:var(--text);font-size:13px;font-weight:500">${svc.icon} ${svc.name}</span></div>
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span style="color:var(--text2);font-size:13px">Data</span><span style="color:var(--text);font-size:13px;font-weight:500">${DAYS_PT[d.getDay()]}, ${d.getDate()} ${MONTHS_PT[d.getMonth()]}</span></div>
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span style="color:var(--text2);font-size:13px">Horário</span><span style="color:var(--text);font-size:13px;font-weight:500">${a.time}</span></div>
+      <div style="padding:10px 14px;display:flex;justify-content:space-between"><span style="color:var(--text2);font-size:13px">Valor</span><span style="color:var(--accent2);font-size:15px;font-weight:700">${fmtMoney(a.price)}</span></div>
+    </div>
+    ${statusBadge(a.status)}
+    <div class="modal-row" style="margin-top:14px">
+      ${a.status!=="done"&&a.status!=="cancelled"?`<button class="modal-btn primary" onclick="markDone(${a.id});closeModal()">✓ Marcar como concluído</button>`:""}
+      <button class="modal-btn secondary" onclick="closeModal()">Fechar</button>
+    </div>
+  `);
+}
+
+// ============================================================
+//  AGENDA
+// ============================================================
+function changeWeek(d) { agendaWeekOffset += d; renderAgenda(); }
+
+function renderAgenda() {
+  const today = new Date();
+  today.setDate(today.getDate() + agendaWeekOffset * 7);
+  const dow = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - dow + (dow === 0 ? -6 : 1));
+
+  const label = `${monday.getDate()} ${MONTHS_PT[monday.getMonth()]} — ${new Date(monday.getTime()+6*86400000).getDate()} ${MONTHS_PT[new Date(monday.getTime()+6*86400000).getMonth()]}`;
+  document.getElementById("agenda-label").textContent = label;
+
+  let stripHtml = "";
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday); d.setDate(monday.getDate() + i);
+    const ds = d.toISOString().split("T")[0];
+    const hasAppt = APPOINTMENTS.some(a => a.date === ds && (currentBarber === "admin" || a.barber === currentBarber));
+    const isActive = ds === agendaSelectedDate;
+    stripHtml += `<div class="week-day${isActive?" active":""}${hasAppt?" has-appt":""}" onclick="selectAgendaDay('${ds}',this)">
+      <div class="wd-name">${DAYS_PT[d.getDay()]}</div>
+      <div class="wd-num">${d.getDate()}</div>
+    </div>`;
+  }
+  document.getElementById("week-strip").innerHTML = stripHtml;
+  renderAgendaDay(agendaSelectedDate);
+}
+
+function selectAgendaDay(ds, el) {
+  agendaSelectedDate = ds;
+  document.querySelectorAll(".week-day").forEach(d => d.classList.remove("active"));
+  el.classList.add("active");
+  renderAgendaDay(ds);
+}
+
+function renderAgendaDay(dateStr) {
+  const d = new Date(dateStr + "T12:00:00");
+  document.getElementById("agenda-day-label").textContent = `${DAYS_PT[d.getDay()]}, ${d.getDate()} de ${MONTHS_FULL[d.getMonth()]}`;
+
+  const dow = d.getDay();
+  const wd = CONFIG.workdays[dow];
+  const appts = getAppts(currentBarber, dateStr);
+  const apptMap = {};
+  appts.forEach(a => { apptMap[a.time] = a; });
+
+  if (!wd) {
+    document.getElementById("agenda-timeline").innerHTML = `<div class="empty"><div class="empty-icon">🔒</div><div class="empty-text">Fechado neste dia</div></div>`;
+    return;
+  }
+
+  const [openH,openM] = wd.open.split(":").map(Number);
+  const [closeH,closeM] = wd.close.split(":").map(Number);
+  const now = new Date();
+  const nowMin = now.getHours()*60+now.getMinutes();
+
+  let html = "<div class='timeline'>";
+  for (let m = openH*60+openM; m < closeH*60+closeM; m += CONFIG.slotInterval) {
+    const h = String(Math.floor(m/60)).padStart(2,"0");
+    const min = String(m%60).padStart(2,"0");
+    const t = `${h}:${min}`;
+    const a = apptMap[t];
+    const isCurrent = Math.abs(m - nowMin) < CONFIG.slotInterval && dateStr === todayStr();
+    const isPast = dateStr < todayStr() || (dateStr === todayStr() && m < nowMin - CONFIG.slotInterval);
+
+    html += `<div class="timeline-item">
+      <div class="tl-time">${t}</div>
+      <div class="tl-line">
+        <div class="tl-dot${a ? (isPast?" done":" booked") : (isCurrent?" current":"")}"></div>
+        <div class="tl-connector"></div>
+      </div>
+      <div class="tl-card">`;
+
+    if (a && a.status !== "cancelled") {
+      const svc = getSvc(a.service);
+      html += `<div class="tl-appt${isPast?" done-slot":""}">
+        <div class="tl-client">${a.client}</div>
+        <div class="tl-svc">${svc.icon} ${svc.name} · ${svc.duration}min</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+          <div class="tl-price">${fmtMoney(a.price)}</div>
+          ${statusBadge(a.status)}
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          ${!isPast&&a.status!=="done"?`<button class="action-btn success" onclick="markDone(${a.id})">✓ Concluir</button>`:""}
+          ${a.status!=="done"&&a.status!=="cancelled"?`<button class="action-btn danger" onclick="cancelAppt(${a.id})">✕ Cancelar</button>`:""}
+          <button class="action-btn" onclick="openApptDetail(${a.id})">Detalhe</button>
+        </div>
+      </div>`;
+    } else {
+      html += `<div class="tl-slot-empty"><span>${isCurrent?"🔴 Agora livre":"Livre"}</span></div>`;
+    }
+    html += `</div></div>`;
+  }
+  html += "</div>";
+  document.getElementById("agenda-timeline").innerHTML = html;
+}
+
+// ============================================================
+//  FINANCEIRO
+// ============================================================
+let currentPeriod = "hoje";
+function setPeriod(p, el) {
+  currentPeriod = p;
+  document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("active"));
+  el.classList.add("active");
+  renderFinanceiro(p);
+}
+
+function renderFinanceiro(period) {
+  const today = todayStr();
+  const now = new Date();
+  let appts = getAppts(currentBarber, null).filter(a => a.status !== "cancelled");
+
+  if (period === "hoje") appts = appts.filter(a => a.date === today);
+  else if (period === "semana") {
+    const wStart = new Date(now); wStart.setDate(now.getDate() - now.getDay() + 1);
+    appts = appts.filter(a => a.date >= wStart.toISOString().split("T")[0]);
+  } else if (period === "mes") {
+    const mStart = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-01`;
+    appts = appts.filter(a => a.date >= mStart);
+  }
+
+  const total  = appts.reduce((s,a)=>s+a.price,0);
+  const done   = appts.filter(a=>a.status==="done").reduce((s,a)=>s+a.price,0);
+  const pend   = total - done;
+
+  document.getElementById("fin-stats").innerHTML = `
+    <div class="stat-card"><div class="stat-icon">💵</div><div class="stat-val" style="font-size:18px">${fmtMoney(total)}</div><div class="stat-label">Faturamento total</div></div>
+    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val" style="font-size:18px">${fmtMoney(done)}</div><div class="stat-label">Já recebido</div></div>
+    <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-val" style="font-size:18px">${fmtMoney(pend)}</div><div class="stat-label">A receber</div></div>
+    <div class="stat-card"><div class="stat-icon">✂️</div><div class="stat-val">${appts.length}</div><div class="stat-label">Atendimentos</div></div>
+  `;
+
+  // Mini chart — últimos 7 dias
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now); d.setDate(now.getDate()-i);
+    const ds = d.toISOString().split("T")[0];
+    const val = getAppts(currentBarber, ds).filter(a=>a.status!=="cancelled").reduce((s,a)=>s+a.price,0);
+    days.push({ label: DAYS_PT[d.getDay()], val, isToday: ds === today });
+  }
+  const maxVal = Math.max(...days.map(d=>d.val), 1);
+  document.getElementById("mini-chart").innerHTML = days.map(d =>
+    `<div class="chart-bar-wrap"><div class="chart-bar${d.isToday?" today":""}" style="height:${Math.round((d.val/maxVal)*100)}%"></div></div>`
+  ).join("");
+  document.getElementById("chart-labels").innerHTML = days.map(d=>`<span>${d.label}</span>`).join("");
+
+  // Top services
+  const svcCount = {};
+  getAppts(currentBarber,null).filter(a=>a.status!=="cancelled").forEach(a=>{
+    svcCount[a.service] = (svcCount[a.service]||0) + 1;
+  });
+  const sorted = Object.entries(svcCount).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  const maxCount = sorted[0]?.[1] || 1;
+  document.getElementById("top-services").innerHTML = sorted.map(([id,cnt])=>{
+    const svc = getSvc(id);
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+        <span style="font-size:13px;color:var(--text)">${svc.icon} ${svc.name}</span>
+        <span style="font-size:13px;color:var(--accent2);font-weight:600">${cnt}x</span>
+      </div>
+      <div style="height:6px;background:var(--bg4);border-radius:3px">
+        <div style="height:100%;width:${Math.round((cnt/maxCount)*100)}%;background:var(--accent);border-radius:3px;transition:width 0.5s ease"></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ============================================================
+//  CLIENTES
+// ============================================================
+function renderClients(query) {
+  const all = getAppts(currentBarber, null).filter(a=>a.status!=="cancelled");
+  const clientMap = {};
+  all.forEach(a => {
+    if (!clientMap[a.client]) clientMap[a.client] = { visits:0, total:0, last:"" };
+    clientMap[a.client].visits++;
+    clientMap[a.client].total += a.price;
+    if (a.date > clientMap[a.client].last) clientMap[a.client].last = a.date;
+  });
+  let clients = Object.entries(clientMap).sort((a,b)=>b[1].total-a[1].total);
+  if (query) clients = clients.filter(([n])=>n.toLowerCase().includes(query.toLowerCase()));
+
+  if (!clients.length) {
+    document.getElementById("clients-list").innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Nenhum cliente encontrado</div></div>`;
+    return;
+  }
+
+  document.getElementById("clients-list").innerHTML = `<div class="card">` + clients.map(([name,info])=>{
+    const initials = name.split(" ").map(n=>n[0]).slice(0,2).join("").toUpperCase();
+    const d = info.last ? new Date(info.last+"T12:00:00") : null;
+    const lastLabel = d ? `Último: ${d.getDate()} ${MONTHS_PT[d.getMonth()]}` : "";
+    return `<div class="client-item">
+      <div class="client-ava">${initials}</div>
+      <div>
+        <div class="client-name">${name}</div>
+        <div class="client-info">${info.visits} visita${info.visits>1?"s":""} · ${lastLabel}</div>
+      </div>
+      <div class="client-right">
+        <div class="client-total">${fmtMoney(info.total)}</div>
+        <div class="client-visits">em serviços</div>
+      </div>
+    </div>`;
+  }).join("") + `</div>`;
+}
+
+// ============================================================
+//  CONFIG
+// ============================================================
+function renderConfig() {
+  const days = [
+    {k:1,name:"Segunda"},{k:2,name:"Terça"},{k:3,name:"Quarta"},
+    {k:4,name:"Quinta"},{k:5,name:"Sexta"},{k:6,name:"Sábado"},{k:0,name:"Domingo"},
+  ];
+  document.getElementById("workday-config").innerHTML = days.map(({k,name})=>{
+    const wd = CONFIG.workdays[k];
+    return `<div class="toggle-wrap" style="${k===0?"border:none":""}">
+      <div>
+        <div class="toggle-label">${name}</div>
+        <div class="toggle-sub">${wd ? `${wd.open} – ${wd.close}` : "Fechado"}</div>
+      </div>
+      <button class="toggle${wd?" on":""}" onclick="this.classList.toggle('on')"></button>
+    </div>`;
+  }).join("");
+
+  document.getElementById("booking-link").textContent = window.location.origin + window.location.pathname.replace("admin.html","") + "index.html";
+}
+
+function copyLink() {
+  const link = document.getElementById("booking-link").textContent;
+  navigator.clipboard.writeText(link).then(() => {
+    alert("✅ Link copiado!");
+  });
+}
+
+// ============================================================
+//  NOVO AGENDAMENTO MANUAL
+// ============================================================
+function openNewAppt() {
+  const svcOptions = CONFIG.services.map(s=>`<option value="${s.id}">${s.icon} ${s.name} — ${fmtMoney(s.price)}</option>`).join("");
+  const barberOptions = CONFIG.barbers.filter(b=>b.id!=="qualquer").map(b=>`<option value="${b.id}">${b.emoji} ${b.name}</option>`).join("");
+  const today = todayStr();
+
+  openModal(`
+    <div class="modal-title">➕ Novo Agendamento</div>
+    <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Cliente</label>
+    <input id="na-client" class="modal-input" placeholder="Nome completo do cliente" />
+    <label style="font-size:12px;color:var(--text2);display:block;margin:12px 0 4px">Serviço</label>
+    <select id="na-service" class="modal-input" style="appearance:none">${svcOptions}</select>
+    <label style="font-size:12px;color:var(--text2);display:block;margin:12px 0 4px">Barbeiro</label>
+    <select id="na-barber" class="modal-input" style="appearance:none">${barberOptions}</select>
+    <label style="font-size:12px;color:var(--text2);display:block;margin:12px 0 4px">Data</label>
+    <input id="na-date" class="modal-input" type="date" value="${today}" />
+    <label style="font-size:12px;color:var(--text2);display:block;margin:12px 0 4px">Horário</label>
+    <input id="na-time" class="modal-input" type="time" value="09:00" />
+    <div class="modal-row">
+      <button class="modal-btn secondary" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn primary" onclick="saveNewAppt()">Agendar ✓</button>
+    </div>
+  `);
+}
+
+function saveNewAppt() {
+  const client  = document.getElementById("na-client").value.trim();
+  const service = document.getElementById("na-service").value;
+  const barber  = document.getElementById("na-barber").value;
+  const date    = document.getElementById("na-date").value;
+  const time    = document.getElementById("na-time").value;
+  if (!client || !date || !time) { alert("Preencha todos os campos!"); return; }
+  const svc = getSvc(service);
+  const newAppt = { id: Date.now(), date, time, client, service, barber, status:"confirmed", price: svc.price };
+  APPOINTMENTS.push(newAppt);
+  closeModal();
+  renderHoje();
+  renderAgendaDay(agendaSelectedDate);
+}
+
+// ============================================================
+//  MODAL
+// ============================================================
+function openModal(html) {
+  document.getElementById("modal-box").innerHTML = html;
+  document.getElementById("modal").classList.remove("hidden");
+}
+function closeModal(e) {
+  if (!e || e.target === document.getElementById("modal")) {
+    document.getElementById("modal").classList.add("hidden");
+  }
+}
+</script>
+</body>
+</html>
